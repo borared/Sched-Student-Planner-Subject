@@ -1,7 +1,7 @@
 import Auth from "../components/Authentication/Auth";
 
-export default function Authentication() {
+export default function Authentication({ onLogin }) {
     return (
-        <Auth />
+        <Auth onLogin={onLogin} />
     );
 }
