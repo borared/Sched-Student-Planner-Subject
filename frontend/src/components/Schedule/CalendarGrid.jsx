@@ -2,18 +2,7 @@ import UpcomingPanel from "./UpcomingPanel";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-// Sample events — keyed by "YYYY-M-D"
-const EVENTS = {
-  "2023-10-2":  [{ label: "Organic Chem ...", color: "bg-purple-100 text-purple-700" }],
-  "2023-10-5":  [
-    { label: "Thesis Outline", color: "bg-blue-500 text-white" },
-    { label: "Reading: Plato", color: "bg-orange-200 text-orange-700" },
-  ],
-  "2023-10-11": [{ label: "Design Review", color: "bg-blue-500 text-white" }],
-  "2023-10-13": [{ label: "Final Submission", color: "bg-red-400 text-white" }],
-  "2023-10-17": [{ label: "Lab Work", color: "bg-purple-100 text-purple-700" }],
-  "2023-10-25": [{ label: "Team Call", color: "bg-blue-100 text-blue-700" }],
-};
+// Removed hardcoded EVENTS
 
 function buildCalendar(year, month) {
   // month is 0-based
@@ -59,7 +48,7 @@ function eventKey(date) {
  * CalendarGrid
  * Month grid with day numbers, event pills, today highlight, and UpcomingPanel overlay.
  */
-export default function CalendarGrid({ year, month }) {
+export default function CalendarGrid({ year, month, events = {} }) {
   const today = new Date();
   const weeks = buildCalendar(year, month);
 
@@ -83,7 +72,7 @@ export default function CalendarGrid({ year, month }) {
               cell.date.getMonth() === today.getMonth() &&
               cell.date.getDate() === today.getDate();
 
-            const events = EVENTS[eventKey(cell.date)] || [];
+            const dayEvents = events[eventKey(cell.date)] || [];
 
             // Show UpcomingPanel in last 2 cells of the 4th week row (overlays SAT-SUN)
             const isUpcomingSlot = wi === 3 && di === 5;
@@ -115,7 +104,7 @@ export default function CalendarGrid({ year, month }) {
                 </div>
 
                 {/* Events */}
-                {!isUpcomingSlot && events.map((ev, ei) => (
+                {!isUpcomingSlot && dayEvents.map((ev, ei) => (
                   <div
                     key={ei}
                     className={`text-[11px] font-semibold px-2 py-1 rounded-lg mb-1 truncate ${ev.color}`}
