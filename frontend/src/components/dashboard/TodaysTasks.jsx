@@ -66,7 +66,7 @@ export default function TodaysTasks({ tasks = [], onToggle }) {
       {/* Section Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-gray-900">Today's Tasks</h3>
-        <button className="text-xs text-blue-600 border border-dashed border-blue-300 px-3 py-1 rounded hover:bg-blue-50 transition-colors">
+        <button className="hover:cursor-pointer text-xs text-blue-600 border border-dashed border-blue-300 px-3 py-1 rounded hover:bg-blue-50 transition-colors">
           View All
         </button>
       </div>
