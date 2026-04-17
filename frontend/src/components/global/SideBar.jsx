@@ -16,8 +16,7 @@ const navItems = [
   { label: "Settings", icon: Settings },
 ];
 
-export default function SideBar({ user, onLogout }) {
-  const [active, setActive] = useState("Dashboard");
+export default function SideBar({ user, onLogout, activePage = "Dashboard", onNavigate }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   return (
@@ -52,11 +51,11 @@ export default function SideBar({ user, onLogout }) {
         {/* ── Nav Links ── */}
         <nav className="flex flex-col gap-1 flex-1">
           {navItems.map(({ label, icon: Icon }) => {
-            const isActive = active === label;
+            const isActive = activePage === label;
             return (
               <button
                 key={label}
-                onClick={() => setActive(label)}
+                onClick={() => onNavigate?.(label)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left
                   ${
                     isActive
