@@ -4,7 +4,7 @@ import { Search, Bell } from "lucide-react";
  * DashboardHeader
  * Top bar: greeting on the left, search/bell/add-task on the right
  */
-export default function DashboardHeader({ name = "Bora" }) {
+export default function DashboardHeader({ name = "Bora", onAddTask }) {
   return (
     <header className="flex items-center justify-between mb-8">
       {/* Greeting */}
@@ -24,7 +24,10 @@ export default function DashboardHeader({ name = "Bora" }) {
         </button>
 
         {/* Add Task button */}
-        <button className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+        <button 
+          onClick={onAddTask}
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors cursor-pointer"
+        >
           + Add Task
         </button>
       </div>
