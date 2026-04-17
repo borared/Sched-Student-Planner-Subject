@@ -2,6 +2,7 @@ import { useState } from "react";
 import ScheduleHeader from "../components/Schedule/ScheduleHeader";
 import CalendarGrid from "../components/Schedule/CalendarGrid";
 import AddScheduleModal from "../components/Schedule/AddScheduleModal";
+import UpcomingPanel from "../components/Schedule/UpcomingPanel";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -110,6 +111,10 @@ export default function Schedule() {
         <CalendarGrid year={year} month={month} events={events} />
         {/* Bottom breathing room */}
         <div className="h-6" />
+        {/* Floating Upcoming Panel fixed bottom right */}
+        <div className="fixed bottom-8 right-8 z-40">
+          <UpcomingPanel />
+        </div>
       </div>
     </div>
   );
