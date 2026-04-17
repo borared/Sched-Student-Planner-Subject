@@ -89,4 +89,18 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/me
+// @desc    Get current logged-in user
+// @access  Private (requires JWT)
+// ─────────────────────────────────────────────
+const getMe = async (req, res) => {
+  // req.user is already populated by the protect middleware
+  res.status(200).json({
+    id: req.user._id,
+    email: req.user.email,
+    createdAt: req.user.createdAt,
+  });
+};
+
+module.exports = { registerUser, loginUser, getMe };
