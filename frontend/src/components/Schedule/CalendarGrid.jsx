@@ -1,4 +1,4 @@
-import UpcomingPanel from "./UpcomingPanel";
+
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -74,18 +74,12 @@ export default function CalendarGrid({ year, month, events = {} }) {
 
             const dayEvents = events[eventKey(cell.date)] || [];
 
-            // Show UpcomingPanel in last 2 cells of the 4th week row (overlays SAT-SUN)
-            const isUpcomingSlot = wi === 3 && di === 5;
-            const isUpcomingHidden = wi === 3 && di === 6;
-            if (isUpcomingHidden) return null;
-
             return (
               <div
                 key={di}
                 className={`relative p-2 min-h-[110px] border-r border-gray-200 last:border-r-0 transition-colors
                   ${cell.current ? "bg-white hover:bg-blue-50/30" : "bg-gray-50/60"}
                   ${isToday ? "ring-2 ring-blue-500 ring-inset" : ""}
-                  ${isUpcomingSlot ? "col-span-2" : ""}
                 `}
               >
                 {/* Day number */}
@@ -104,7 +98,7 @@ export default function CalendarGrid({ year, month, events = {} }) {
                 </div>
 
                 {/* Events */}
-                {!isUpcomingSlot && dayEvents.map((ev, ei) => (
+                {dayEvents.map((ev, ei) => (
                   <div
                     key={ei}
                     className={`text-[11px] font-semibold px-2 py-1 rounded-lg mb-1 truncate ${ev.color}`}
@@ -113,12 +107,7 @@ export default function CalendarGrid({ year, month, events = {} }) {
                   </div>
                 ))}
 
-                {/* Upcoming Panel overlay in the SAT-SUN span slot */}
-                {isUpcomingSlot && (
-                  <div className="absolute inset-0 p-2 flex items-start justify-start">
-                    <UpcomingPanel />
-                  </div>
-                )}
+
               </div>
             );
           })}
