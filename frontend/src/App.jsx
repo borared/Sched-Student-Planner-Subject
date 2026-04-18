@@ -3,6 +3,8 @@ import SideBar from "./components/global/SideBar";
 import Dashboard from "./page/Dashboard";
 import Settings from "./page/Settings";
 import Schedule from "./page/Schedule";
+import StudySet from "./page/StudySet";
+import Analytics from "./page/Analytics";
 import Authentication from "./page/Authentication";
 import useAuth from "./hook/useAuth";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -37,7 +39,7 @@ function PageTransition({ children, activePage }) {
 
   return (
     <div
-      className={`flex-1 overflow-hidden transition-all duration-200 ease-out ${
+      className={`flex flex-col flex-1 overflow-hidden transition-all duration-200 ease-out ${
         animating ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
       }`}
       style={{ minHeight: 0 }}
@@ -65,6 +67,10 @@ function App() {
         return <Settings user={user} onLogout={logout} />;
       case "Schedule":
         return <Schedule />;
+      case "Study Sets":
+        return <StudySet />;
+      case "Analytics":
+        return <Analytics />;
       case "Dashboard":
       default:
         return <Dashboard />;
