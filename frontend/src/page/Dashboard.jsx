@@ -4,6 +4,7 @@ import DailyProgress from "../components/dashboard/DailyProgress";
 import TodaysTasks from "../components/dashboard/TodaysTasks";
 import UpcomingTasks from "../components/dashboard/UpcomingTasks";
 import FocusTimer from "../components/dashboard/FocusTimer";
+import AddScheduleModal from "../components/Schedule/AddScheduleModal";
 
 // Tasks state lives here so DailyProgress always reflects the real count
 const initialTasks = [
@@ -38,6 +39,7 @@ const initialTasks = [
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState(initialTasks);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleToggle = (id) => {
     setTasks((prev) =>
@@ -45,14 +47,43 @@ export default function Dashboard() {
     );
   };
 
+  const handleAddTask = (taskData) => {
+    // Generate some tags out of the subject and time
+    const newTags = [
+      { label: taskData.subject, style: "bg-purple-100 text-purple-600" }
+    ];
+    
+    // Add time difference as a tag if start and end exist
+    if (taskData.startTime && taskData.endTime) {
+      newTags.push({ label: `${taskData.startTime} - ${taskData.endTime}`, style: "bg-gray-100 text-gray-500" });
+    } else {
+      newTags.push({ label: taskData.priority, style: taskData.priority === "High" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600" });
+    }
+
+    const newTask = {
+      id: Date.now(),
+      title: taskData.taskName,
+      completed: false,
+      tags: newTags,
+    };
+
+    setTasks((prev) => [newTask, ...prev]);
+  };
+
   // Derived counts — always in sync with task state
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length;
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto bg-white">
+    <main className="flex-1 p-8 overflow-y-auto bg-white relative">
+      <AddScheduleModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleAddTask}
+      />
+
       {/* Header */}
-      <DashboardHeader name="Bora" />
+      <DashboardHeader name="Bora" onAddTask={() => setIsModalOpen(true)} />
 
       {/* Two-column layout */}
       <div className="flex gap-6">
