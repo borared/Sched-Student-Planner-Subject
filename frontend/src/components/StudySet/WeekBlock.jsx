@@ -6,6 +6,7 @@ import FilePreviewModal from "./FilePreviewModal";
  * WeekBlock
  * Displays a single week timeline element, its topics, and file uploads.
  */
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function WeekBlock({ week, isLast, onWeekUpdate }) {
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -40,7 +41,7 @@ export default function WeekBlock({ week, isLast, onWeekUpdate }) {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/weeks/${week._id}/files`, {
+      const res = await fetch(`${API_BASE_URL}/api/weeks/${week._id}/files`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -64,7 +65,7 @@ export default function WeekBlock({ week, isLast, onWeekUpdate }) {
   const updateStatus = async (newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/weeks/${week._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weeks/${week._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +90,7 @@ export default function WeekBlock({ week, isLast, onWeekUpdate }) {
   const handleDeleteFile = async (fileId) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/weeks/${week._id}/files/${fileId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weeks/${week._id}/files/${fileId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -113,7 +114,7 @@ export default function WeekBlock({ week, isLast, onWeekUpdate }) {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/weeks/${week._id}/files/${fileId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weeks/${week._id}/files/${fileId}`, {
         method: "PATCH",
         headers: { 
           "Content-Type": "application/json",

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Mail, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = `${API_BASE_URL}/api/auth`;
 
 /**
  * AuthForm
@@ -113,7 +114,7 @@ export default function AuthForm({ onLogin }) {
             <div className="flex gap-3">
               {/* Google OAuth */}
               <a
-                href="http://localhost:5000/auth/google"
+                href={`${API_BASE_URL}/auth/google`}
                 className="flex-1 flex items-center justify-center gap-2.5 border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
