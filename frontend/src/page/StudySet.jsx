@@ -1,84 +1,147 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import StudySetHeader from "../components/StudySet/StudySetHeader";
 import SubjectCard from "../components/StudySet/SubjectCard";
 import StatsBlock from "../components/StudySet/StatsBlock";
-
-import { 
-  Calculator, 
-  Microscope, 
-  Compass, 
-  TerminalSquare, 
-  Globe 
-} from "lucide-react";
-
-const TOP_SUBJECTS = [
-  {
-    id: 1,
-    icon: Calculator,
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    tagLabel: "Active",
-    tagColor: "bg-blue-100 text-blue-700",
-    title: "Advanced Calculus",
-    description: "Multivariable integration, vector fields, and Stokes' theorem.",
-    circles: ["bg-blue-500 z-20", "bg-blue-100 z-10", "bg-gray-100 z-0"],
-    studySetsCount: 12,
-  },
-  {
-    id: 2,
-    icon: Microscope,
-    iconBg: "bg-purple-100",
-    iconColor: "text-purple-600",
-    tagLabel: "Lab Week",
-    tagColor: "bg-purple-50 text-purple-600",
-    title: "Molecular Biology",
-    description: "Genetic sequencing, CRISPR-Cas9 mechanisms and cell signaling.",
-    circles: ["bg-purple-200 z-10", "bg-gray-100 z-0"],
-    studySetsCount: 8,
-  },
-  {
-    id: 3,
-    icon: Compass,
-    iconBg: "bg-indigo-50",
-    iconColor: "text-indigo-500",
-    tagLabel: "Review",
-    tagColor: "bg-gray-200/60 text-gray-600",
-    title: "History of Design",
-    description: "From Bauhaus to modern digital interfaces and typography.",
-    circles: ["bg-indigo-100 z-30", "bg-blue-500 z-20", "bg-purple-200 z-10", "bg-gray-100 z-0"],
-    studySetsCount: 24,
-  }
-];
-
-const COMPUTER_SYSTEMS = {
-  icon: TerminalSquare,
-  iconBg: "bg-red-100",
-  iconColor: "text-red-500",
-  title: "Computer Systems",
-  description: "Low-level architecture, memory management, and kernel design.",
-  progress: 85,
-};
-
-const BOTTOM_SUBJECTS = [
-  {
-    id: 4,
-    icon: Globe,
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    tagLabel: "New",
-    tagColor: "bg-blue-200 text-blue-700",
-    title: "Global Economics",
-    description: "Trade theories, fiscal policy, and emerging market dynamics.",
-    circles: ["bg-blue-500 z-10", "bg-gray-100 z-0"],
-    studySetsCount: 4,
-  }
-];
+import AddSubjectModal from "../components/StudySet/AddSubjectModal";
+import SubjectDetail from "../components/StudySet/SubjectDetail";
+import { Book, AlertCircle, Loader } from "lucide-react";
 
 /**
  * StudySet Page
- * Displays academic subjects categorized in a responsive grid.
+ * Displays academic subjects fetched from the backend.
  */
 export default function StudySet() {
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [subjectToEdit, setSubjectToEdit] = useState(null);
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/subjects", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch subjects");
+      }
+      
+      setSubjects(data.subjects);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSubject = async (subjectData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const isEditing = !!subjectToEdit;
+      const url = isEditing 
+        ? `http://localhost:5000/api/subjects/${subjectToEdit.id}`
+        : "http://localhost:5000/api/subjects";
+
+      const res = await fetch(url, {
+        method: isEditing ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(subjectData),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to save subject");
+      }
+
+      if (isEditing) {
+        setSubjects((prev) => prev.map(s => s._id === data.subject._id ? data.subject : s));
+      } else {
+        setSubjects([data.subject, ...subjects]);
+      }
+      
+      setIsModalOpen(false);
+      setSubjectToEdit(null);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const openEditModal = (sub) => {
+    setSubjectToEdit(sub);
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSubjectToEdit(null);
+  };
+
+  const handleDeleteSubject = async (subjectId) => {
+    if (!window.confirm("Are you sure you want to delete this subject? All associated weeks will be untracked.")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/subjects/${subjectId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to delete subject");
+      
+      setSubjects((prev) => prev.filter(s => s._id !== subjectId));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Maps backend subjects into format expected by SubjectCard
+  const formattedSubjects = subjects.map((sub) => ({
+    id: sub._id,
+    icon: Book,
+    iconBg: "bg-gray-100",
+    iconColor: "text-gray-800",
+    title: sub.name,
+    description: sub.description || "No description provided.",
+    midTermDate: sub.midTermDate,
+    finalExamDate: sub.finalExamDate,
+    tagLabel: "Active",
+    tagColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    circles: [
+      { color: sub.color, zIndex: 10 },
+      { class: "bg-gray-100 dark:bg-gray-700", zIndex: 0 }
+    ],
+    studySetsCount: 0,
+    color: sub.color,
+    onDelete: () => handleDeleteSubject(sub._id),
+    onEdit: () => openEditModal({
+      id: sub._id,
+      name: sub.name,
+      description: sub.description,
+      midTermDate: sub.midTermDate,
+      finalExamDate: sub.finalExamDate,
+      color: sub.color
+    })
+  }));
+
+  if (selectedSubject) {
+    return (
+      <SubjectDetail 
+        subjectId={selectedSubject.id} 
+        subject={selectedSubject} 
+        onBack={() => setSelectedSubject(null)} 
+      />
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-8 bg-white relative">
       <div className="max-w-7xl mx-auto flex flex-col">
@@ -95,39 +158,78 @@ export default function StudySet() {
               Current Subjects
             </h2>
           </div>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all cursor-pointer">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+          >
             <span className="text-lg leading-none mt-[-2px]">+</span> Add Subject
           </button>
         </div>
 
-        {/* Subjects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          {/* Row 1 */}
-          {TOP_SUBJECTS.map((sub) => (
-            <SubjectCard key={sub.id} {...sub} />
-          ))}
-
-          {/* Row 2 Group Block */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 dark:bg-[#1a1d27] rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 border border-gray-100 dark:border-gray-800">
-            <div className="flex-1 min-w-0">
-              <SubjectCard {...COMPUTER_SYSTEMS} />
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <StatsBlock />
-            </div>
+        {/* Dynamic Display Area */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+             <Loader className="animate-spin text-blue-500" size={32} />
           </div>
+        ) : error ? (
+           <div className="flex flex-col items-center justify-center py-20 text-red-500">
+             <AlertCircle size={48} className="mb-4" />
+             <p className="font-semibold">{error}</p>
+           </div>
+        ) : formattedSubjects.length === 0 ? (
+           <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-300">
+              <Book size={48} className="text-gray-300 mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 mb-2">No subjects yet</h3>
+              <p className="text-gray-500 text-sm mb-6">Create your first subject to start organizing your study sets.</p>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-6 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer"
+              >
+                Create Subject
+              </button>
+           </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Render all Subject Cards */}
+            {formattedSubjects.map((sub, index) => {
+              if (index === 2) {
+                 return (
+                    <React.Fragment key="group-block">
+                      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 dark:bg-[#1a1d27] rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 border border-gray-100 dark:border-gray-800">
+                        <div className="flex-1 min-w-0">
+                          <StatsBlock />
+                        </div>
+                      </div>
+                      <SubjectCard key={sub.id} {...sub} onClick={() => setSelectedSubject(sub)} />
+                    </React.Fragment>
+                 )
+              }
+              return <SubjectCard key={sub.id} {...sub} onClick={() => setSelectedSubject(sub)} />
+            })}
 
-          {BOTTOM_SUBJECTS.map((sub) => (
-            <SubjectCard key={sub.id} {...sub} />
-          ))}
-
-        </div>
+            {/* If we have less than 3 items, the StatsBlock wouldn't render above. Let's put it at the end if omitted */}
+            {formattedSubjects.length > 0 && formattedSubjects.length <= 2 && (
+              <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 dark:bg-[#1a1d27] rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 border border-gray-100 dark:border-gray-800">
+                <div className="flex-1 min-w-0">
+                  <StatsBlock />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bottom padding */}
         <div className="h-10" />
       </div>
+      
+      {/* Modal */}
+      <AddSubjectModal 
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={handleSaveSubject}
+        subjectToEdit={subjectToEdit}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ const {
   getSubjects,
   createSubject,
   deleteSubject,
+  updateSubject,
 } = require("../controllers/subjectController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -14,6 +15,7 @@ const { protect } = require("../middleware/authMiddleware");
 router.route("/").get(protect, getSubjects).post(protect, createSubject);
 
 // DELETE /api/subjects/:id — Delete a subject
-router.route("/:id").delete(protect, deleteSubject);
+// PUT /api/subjects/:id — Update a subject
+router.route("/:id").delete(protect, deleteSubject).put(protect, updateSubject);
 
 module.exports = router;

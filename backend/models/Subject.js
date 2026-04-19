@@ -11,6 +11,19 @@ const subjectSchema = new mongoose.Schema(
       required: [true, "Subject name is required"],
       trim: true,
     },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    midTermDate: {
+      type: Date,
+      default: null,
+    },
+    finalExamDate: {
+      type: Date,
+      default: null,
+    },
     color: {
       type: String,
       default: "#4f46e5", // Default indigo color

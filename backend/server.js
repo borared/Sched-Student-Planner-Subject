@@ -59,6 +59,11 @@ app.use("/auth", authRoutes);    // Google OAuth:   /auth/google, /auth/google/c
 
 app.use("/api/tasks", require("./routes/taskRoutes"));
 app.use("/api/subjects", require("./routes/subjectRoutes"));
+app.use("/api", require("./routes/weekRoutes")); // week paths defined individually
+
+// ─── Serve Uploads Statically ─────────────────
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ─── Health Check Route ───────────────────────
 app.get("/", (req, res) => {

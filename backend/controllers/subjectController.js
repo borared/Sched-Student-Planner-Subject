@@ -26,7 +26,7 @@ const getSubjects = async (req, res) => {
 // ─────────────────────────────────────────────
 const createSubject = async (req, res) => {
   try {
-    const { name, color } = req.body;
+    const { name, description, color, midTermDate, finalExamDate } = req.body;
 
     // Validate required field
     if (!name) {
@@ -35,6 +35,9 @@ const createSubject = async (req, res) => {
 
     const subject = await Subject.create({
       name,
+      description: description || "",
+      midTermDate: midTermDate || null,
+      finalExamDate: finalExamDate || null,
       color: color || "#4f46e5", // Default color if not provided
       user: req.user._id,
     });
@@ -80,4 +83,37 @@ const deleteSubject = async (req, res) => {
   }
 };
 
-module.exports = { getSubjects, createSubject, deleteSubject };
+// ─────────────────────────────────────────────
+// @route   PUT /api/subjects/:id
+// @desc    Update a subject
+// @access  Private
+// ─────────────────────────────────────────────
+const updateSubject = async (req, res) => {
+  try {
+    const { name, description, color, midTermDate, finalExamDate } = req.body;
+
+    const subject = await Subject.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    if (name) subject.name = name;
+    if (description !== undefined) subject.description = description;
+    if (color) subject.color = color;
+    if (midTermDate !== undefined) subject.midTermDate = midTermDate;
+    if (finalExamDate !== undefined) subject.finalExamDate = finalExamDate;
+
+    await subject.save();
+
+    res.status(200).json({ message: "Subject updated successfully", subject });
+  } catch (error) {
+    console.error("Update Subject Error:", error.message);
+    res.status(500).json({ message: "Server error updating subject" });
+  }
+};
+
+module.exports = { getSubjects, createSubject, deleteSubject, updateSubject };
