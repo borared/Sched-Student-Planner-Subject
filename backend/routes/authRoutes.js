@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const { registerUser, loginUser, getMe } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
+const CLIENT_URL = process.env.PROD_URL || process.env.FRONTEND_URL || "http://localhost:5176";
+
 // ─────────────────────────────────────────────
 // Email / Password Routes
 // ─────────────────────────────────────────────
@@ -34,7 +36,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/auth?error=google_failed`,
+    failureRedirect: `${CLIENT_URL}/auth?error=google_failed`,
     session: false, // We use JWT, not sessions
   }),
   (req, res) => {
@@ -57,7 +59,7 @@ router.get(
 
     // Redirect back to frontend with token + user data in query params
     res.redirect(
-      `${process.env.FRONTEND_URL}/dashboard?token=${token}&user=${userData}`
+      `${CLIENT_URL}/dashboard?token=${token}&user=${userData}`
     );
   }
 );
