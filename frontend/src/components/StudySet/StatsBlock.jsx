@@ -8,23 +8,23 @@ export default function StatsBlock() {
       {/* Top Row: Two side-by-side stats */}
       <div className="flex gap-4 flex-1">
         
-        {/* Next Exam */}
+        {/* Mid Term */}
         <div className="bg-white dark:bg-[#1e212b] rounded-3xl p-6 flex flex-col justify-center flex-1 border border-gray-100 dark:border-gray-800 border-none hover:shadow-md transition-shadow">
           <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1.5">
-            Next Exam
+            Mid Term
           </span>
           <span className="text-xl font-extrabold text-gray-900 tracking-tight">
             Oct 14
           </span>
         </div>
 
-        {/* Avg Score */}
+        {/* Final Exam */}
         <div className="bg-white dark:bg-[#1e212b] rounded-3xl p-6 flex flex-col justify-center flex-1 border border-gray-100 dark:border-gray-800 border-none hover:shadow-md transition-shadow">
           <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1.5">
-            Avg Score
+            Final Exam
           </span>
           <span className="text-xl font-extrabold text-gray-900 tracking-tight">
-            92%
+            Dec 20
           </span>
         </div>
 
