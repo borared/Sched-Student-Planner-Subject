@@ -19,7 +19,8 @@ export default function FilePreviewModal({ isOpen, onClose, file }) {
 
   const getFullUrl = (url) => {
     if (!url) return "";
-    return `http://localhost:5000${url}`;
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    return `${API_BASE_URL}${url}`;
   };
 
   return (

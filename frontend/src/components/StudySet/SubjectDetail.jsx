@@ -6,6 +6,7 @@ import WeekBlock from "./WeekBlock";
  * SubjectDetail Page
  * Renders an expansive view of a specific subject, week tracking, and file uploads.
  */
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function SubjectDetail({ subjectId, subject, onBack }) {
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ export default function SubjectDetail({ subjectId, subject, onBack }) {
   const fetchWeeks = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/subjects/${subjectId}/weeks`, {
+      const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}/weeks`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -39,7 +40,7 @@ export default function SubjectDetail({ subjectId, subject, onBack }) {
     try {
       const token = localStorage.getItem("token");
       const weekNumber = `Week ${weeks.length + 1}`;
-      const res = await fetch(`http://localhost:5000/api/subjects/${subjectId}/weeks`, {
+      const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}/weeks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

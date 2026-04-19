@@ -10,6 +10,7 @@ import { Book, AlertCircle, Loader } from "lucide-react";
  * StudySet Page
  * Displays academic subjects fetched from the backend.
  */
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function StudySet() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export default function StudySet() {
   const fetchSubjects = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/subjects", {
+      const res = await fetch(`${API_BASE_URL}/api/subjects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -47,8 +48,8 @@ export default function StudySet() {
       const token = localStorage.getItem("token");
       const isEditing = !!subjectToEdit;
       const url = isEditing 
-        ? `http://localhost:5000/api/subjects/${subjectToEdit.id}`
-        : "http://localhost:5000/api/subjects";
+        ? `${API_BASE_URL}/api/subjects/${subjectToEdit.id}`
+        : `${API_BASE_URL}/api/subjects`;
 
       const res = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
@@ -91,7 +92,7 @@ export default function StudySet() {
     if (!window.confirm("Are you sure you want to delete this subject? All associated weeks will be untracked.")) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/subjects/${subjectId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
