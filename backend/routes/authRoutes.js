@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 const { registerUser, loginUser, getMe } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
-const CLIENT_URL = process.env.PROD_URL || process.env.FRONTEND_URL || "http://localhost:5176";
+const CLIENT_URL = process.env.NODE_ENV === "production"
+  ? "https://sched-planner.vercel.app"
+  : "http://localhost:5176";
 
 // ─────────────────────────────────────────────
 // Email / Password Routes
