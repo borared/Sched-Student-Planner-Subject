@@ -194,7 +194,7 @@ export default function StudySet() {
             
             {/* Render all Subject Cards */}
             {formattedSubjects.map((sub, index) => {
-              if (index === 2) {
+              if (index === 3) {
                  return (
                     <React.Fragment key="group-block">
                       <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 dark:bg-[#1a1d27] rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 border border-gray-100 dark:border-gray-800">
@@ -209,8 +209,8 @@ export default function StudySet() {
               return <SubjectCard key={sub.id} {...sub} onClick={() => setSelectedSubject(sub)} />
             })}
 
-            {/* If we have less than 3 items, the StatsBlock wouldn't render above. Let's put it at the end if omitted */}
-            {formattedSubjects.length > 0 && formattedSubjects.length <= 2 && (
+            {/* If we have less than 4 items, the StatsBlock wouldn't render above. Let's put it at the end if omitted */}
+            {formattedSubjects.length > 0 && formattedSubjects.length <= 3 && (
               <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 dark:bg-[#1a1d27] rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 border border-gray-100 dark:border-gray-800">
                 <div className="flex-1 min-w-0">
                   <StatsBlock />
