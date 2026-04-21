@@ -8,6 +8,7 @@ import Analytics from "./page/Analytics";
 import Authentication from "./page/Authentication";
 import useAuth from "./hook/useAuth";
 import { ThemeProvider } from "./context/ThemeContext";
+import { Menu, X } from "lucide-react";
 
 /**
  * PageTransition
@@ -52,6 +53,17 @@ function PageTransition({ children, activePage }) {
 function App() {
   const { user, login, logout } = useAuth();
   const [activePage, setActivePage] = useState("Dashboard");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (!user) {
     return (
@@ -80,12 +92,61 @@ function App() {
   return (
     <ThemeProvider>
       <div className="flex h-screen bg-gray-50 overflow-hidden transition-colors duration-300">
+        {/* Desktop sidebar */}
         <SideBar
           user={user}
           onLogout={logout}
           activePage={activePage}
           onNavigate={setActivePage}
+          className="hidden lg:flex"
         />
+
+        {/* Mobile / Tablet Hamburger Button */}
+        <button
+          onClick={() => setIsMobileSidebarOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 rounded-full bg-white text-gray-700 shadow-md flex items-center justify-center"
+          aria-label="Open navigation menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        {/* Mobile / Tablet Sidebar Drawer */}
+        <div
+          className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-200 ${
+            isMobileSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <button
+            className="absolute inset-0 bg-black/35"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            aria-label="Close navigation menu"
+          />
+
+          <div
+            className={`absolute top-0 left-0 h-full transition-transform duration-200 ease-out ${
+              isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="relative h-full">
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"
+                aria-label="Close navigation menu"
+              >
+                <X size={18} />
+              </button>
+              <SideBar
+                user={user}
+                onLogout={logout}
+                activePage={activePage}
+                onNavigate={setActivePage}
+                onItemSelect={() => setIsMobileSidebarOpen(false)}
+                className="w-72 h-full shadow-xl"
+              />
+            </div>
+          </div>
+        </div>
+
         <PageTransition activePage={activePage}>
           {renderPage()}
         </PageTransition>
