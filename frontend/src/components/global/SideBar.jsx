@@ -16,7 +16,14 @@ const navItems = [
   { label: "Settings", icon: Settings },
 ];
 
-export default function SideBar({ user, onLogout, activePage = "Dashboard", onNavigate }) {
+export default function SideBar({
+  user,
+  onLogout,
+  activePage = "Dashboard",
+  onNavigate,
+  className = "",
+  onItemSelect,
+}) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   return (
@@ -31,7 +38,7 @@ export default function SideBar({ user, onLogout, activePage = "Dashboard", onNa
         onCancel={() => setShowLogoutModal(false)}
       />
 
-      <aside className="w-60 h-screen bg-white flex flex-col px-4 py-6 shrink-0">
+      <aside className={`w-60 h-screen bg-white flex flex-col px-4 py-6 shrink-0 ${className}`}>
 
         {/* ── Brand ── */}
         <div className="mb-8 px-2 flex justify-between items-center">
@@ -55,7 +62,10 @@ export default function SideBar({ user, onLogout, activePage = "Dashboard", onNa
             return (
               <button
                 key={label}
-                onClick={() => onNavigate?.(label)}
+                onClick={() => {
+                  onNavigate?.(label);
+                  onItemSelect?.();
+                }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left
                   ${
                     isActive

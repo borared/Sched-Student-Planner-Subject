@@ -10,9 +10,17 @@ import { Book, AlertCircle, Loader } from "lucide-react";
  * StudySet Page
  * Displays academic subjects fetched from the backend.
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:5000"
+    : window.location.origin)
+).replace(/\/$/, "");
 export default function StudySet() {
   const [subjects, setSubjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +30,13 @@ export default function StudySet() {
   useEffect(() => {
     fetchSubjects();
   }, []);
+
+  useEffect(() => {
+    // Re-trigger a short transition so filtered results appear smoothly.
+    setShowSearchResults(false);
+    const timer = setTimeout(() => setShowSearchResults(true), 70);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchSubjects = async () => {
     try {
@@ -38,7 +53,12 @@ export default function StudySet() {
       setSubjects(data.subjects);
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      const isNetworkError = err?.name === "TypeError" && err?.message?.includes("fetch");
+      setError(
+        isNetworkError
+          ? "Unable to reach the server. Please make sure backend is running."
+          : err.message
+      );
       setLoading(false);
     }
   };
@@ -105,7 +125,12 @@ export default function StudySet() {
   };
 
   // Maps backend subjects into format expected by SubjectCard
-  const formattedSubjects = subjects.map((sub) => ({
+  const filteredSubjects = subjects.filter(sub => 
+    sub.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (sub.description && sub.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const formattedSubjects = filteredSubjects.map((sub) => ({
     id: sub._id,
     icon: Book,
     iconBg: "bg-gray-100",
@@ -147,7 +172,7 @@ export default function StudySet() {
     <div className="flex-1 overflow-y-auto p-8 bg-white relative">
       <div className="max-w-7xl mx-auto flex flex-col">
         {/* Top Header */}
-        <StudySetHeader />
+        <StudySetHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
         {/* Section Title & Action Button */}
         <div className="flex items-end justify-between mb-8">
@@ -178,7 +203,7 @@ export default function StudySet() {
              <p className="font-semibold">{error}</p>
            </div>
         ) : formattedSubjects.length === 0 ? (
-           <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-300">
+           <div className={`flex flex-col items-center justify-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-300 transition-all duration-300 ease-out ${showSearchResults ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
               <Book size={48} className="text-gray-300 mb-4" />
               <h3 className="text-xl font-bold text-gray-700 mb-2">No subjects yet</h3>
               <p className="text-gray-500 text-sm mb-6">Create your first subject to start organizing your study sets.</p>
@@ -190,7 +215,7 @@ export default function StudySet() {
               </button>
            </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300 ease-out ${showSearchResults ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
             
             {/* Render all Subject Cards */}
             {formattedSubjects.map((sub, index) => {
