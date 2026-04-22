@@ -26,6 +26,9 @@ export default function StudySet() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [subjectToEdit, setSubjectToEdit] = useState(null);
+  const [subjectToDelete, setSubjectToDelete] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     fetchSubjects();
@@ -109,7 +112,6 @@ export default function StudySet() {
   };
 
   const handleDeleteSubject = async (subjectId) => {
-    if (!window.confirm("Are you sure you want to delete this subject? All associated weeks will be untracked.")) return;
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}`, {
@@ -122,6 +124,28 @@ export default function StudySet() {
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  const openDeleteModal = (subject) => {
+    setSubjectToDelete(subject);
+    setDeleteConfirmText("");
+    setTimeout(() => setIsDeleteModalOpen(true), 10);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setTimeout(() => {
+      setSubjectToDelete(null);
+      setDeleteConfirmText("");
+    }, 200);
+  };
+
+  const confirmDeleteSubject = async () => {
+    if (!subjectToDelete || deleteConfirmText.trim().toLowerCase() !== "delete my subject") {
+      return;
+    }
+    await handleDeleteSubject(subjectToDelete.id);
+    closeDeleteModal();
   };
 
   // Maps backend subjects into format expected by SubjectCard
@@ -147,7 +171,7 @@ export default function StudySet() {
     ],
     studySetsCount: 0,
     color: sub.color,
-    onDelete: () => handleDeleteSubject(sub._id),
+    onDelete: () => openDeleteModal({ id: sub._id, name: sub.name }),
     onEdit: () => openEditModal({
       id: sub._id,
       name: sub.name,
@@ -256,6 +280,54 @@ export default function StudySet() {
         onSave={handleSaveSubject}
         subjectToEdit={subjectToEdit}
       />
+
+      {subjectToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            className={`absolute inset-0 transition-opacity duration-200 ${
+              isDeleteModalOpen ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"
+            }`}
+            onClick={closeDeleteModal}
+            aria-label="Close delete subject confirmation"
+          />
+          <div
+            className={`relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-gray-200 transition-all duration-200 ease-out ${
+              isDeleteModalOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"
+            }`}
+          >
+            <h3 className="text-xl font-extrabold text-gray-900 mb-3">Delete subject</h3>
+            <p className="text-sm text-gray-600 mb-2">
+              This action cannot be undone. This will permanently delete{" "}
+              <span className="font-semibold text-gray-800">{subjectToDelete.name}</span>.
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              To confirm, type <span className="font-bold text-gray-900">delete my subject</span> below.
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="delete my subject"
+              className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+            />
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteSubject}
+                disabled={deleteConfirmText.trim().toLowerCase() !== "delete my subject"}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 disabled:bg-red-300 disabled:cursor-not-allowed transition-all duration-150"
+              >
+                Delete Subject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
