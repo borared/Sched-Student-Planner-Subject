@@ -52,7 +52,7 @@ export default function SubjectCard({
           {onEdit && (
             <button 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="text-gray-300 dark:text-gray-600 hover:text-blue-500 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10"
+              className="text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10"
               title="Edit Subject"
             >
               <Edit2 size={16} strokeWidth={2.5} />
@@ -61,7 +61,7 @@ export default function SubjectCard({
           {onDelete && (
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
+              className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200 cursor-pointer p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
               title="Delete Subject"
             >
               <Trash2 size={16} strokeWidth={2.5} />
