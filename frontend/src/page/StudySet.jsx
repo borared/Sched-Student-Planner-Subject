@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useSWR from "swr";
 import StudySetHeader from "../components/StudySet/StudySetHeader";
 import SubjectCard from "../components/StudySet/SubjectCard";
 import StatsBlock from "../components/StudySet/StatsBlock";
@@ -18,11 +19,39 @@ const API_BASE_URL = (
     : window.location.origin)
 ).replace(/\/$/, "");
 export default function StudySet() {
-  const [subjects, setSubjects] = useState([]);
+  const fetcher = async (url) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    
+    // Automatically log out on token expiration
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.reload();
+      return;
+    }
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch");
+    }
+    return data;
+  };
+
+  const { data, error: rawError, mutate } = useSWR(`${API_BASE_URL}/api/subjects`, fetcher);
+  const subjects = data?.subjects || [];
+  const loading = !data && !rawError;
+
+  const error = rawError 
+    ? (rawError.message.includes("fetch") 
+        ? "Unable to reach the server. Please make sure backend is running." 
+        : rawError.message)
+    : null;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [subjectToEdit, setSubjectToEdit] = useState(null);
@@ -31,40 +60,11 @@ export default function StudySet() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchSubjects();
-  }, []);
-
-  useEffect(() => {
     // Re-trigger a short transition so filtered results appear smoothly.
     setShowSearchResults(false);
     const timer = setTimeout(() => setShowSearchResults(true), 70);
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  const fetchSubjects = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/subjects`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch subjects");
-      }
-      
-      setSubjects(data.subjects);
-      setLoading(false);
-    } catch (err) {
-      const isNetworkError = err?.name === "TypeError" && err?.message?.includes("fetch");
-      setError(
-        isNetworkError
-          ? "Unable to reach the server. Please make sure backend is running."
-          : err.message
-      );
-      setLoading(false);
-    }
-  };
 
   const handleSaveSubject = async (subjectData) => {
     try {
@@ -73,6 +73,15 @@ export default function StudySet() {
       const url = isEditing 
         ? `${API_BASE_URL}/api/subjects/${subjectToEdit.id}`
         : `${API_BASE_URL}/api/subjects`;
+
+      // Optimistic update
+      let currentSubjects = [...(subjects || [])];
+      if (isEditing) {
+        currentSubjects = currentSubjects.map(s => s._id === subjectToEdit.id ? { ...s, ...subjectData } : s);
+      } else {
+        currentSubjects = [{ _id: "temp-" + Date.now(), ...subjectData }, ...currentSubjects];
+      }
+      mutate({ count: currentSubjects.length, subjects: currentSubjects }, false);
 
       const res = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
@@ -88,16 +97,13 @@ export default function StudySet() {
         throw new Error(data.message || "Failed to save subject");
       }
 
-      if (isEditing) {
-        setSubjects((prev) => prev.map(s => s._id === data.subject._id ? data.subject : s));
-      } else {
-        setSubjects([data.subject, ...subjects]);
-      }
+      mutate(); // Revalidate with server data
       
       setIsModalOpen(false);
       setSubjectToEdit(null);
     } catch (err) {
       console.error(err.message);
+      mutate(); // Revert on failure
     }
   };
 
@@ -114,15 +120,21 @@ export default function StudySet() {
   const handleDeleteSubject = async (subjectId) => {
     try {
       const token = localStorage.getItem("token");
+
+      // Optimistic upate
+      const updatedSubjects = (subjects || []).filter(s => s._id !== subjectId);
+      mutate({ count: updatedSubjects.length, subjects: updatedSubjects }, false);
+
       const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to delete subject");
       
-      setSubjects((prev) => prev.filter(s => s._id !== subjectId));
+      mutate(); // Revalidate from backend
     } catch (err) {
       alert(err.message);
+      mutate(); // Revert on failure
     }
   };
 
