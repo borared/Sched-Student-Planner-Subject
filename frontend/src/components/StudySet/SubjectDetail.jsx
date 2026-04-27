@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useSWR from "swr";
 import { ArrowLeft, Download, Plus, Loader, AlertCircle } from "lucide-react";
 import WeekBlock from "./WeekBlock";
 
@@ -8,38 +9,43 @@ import WeekBlock from "./WeekBlock";
  */
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function SubjectDetail({ subjectId, subject, onBack }) {
-  const [weeks, setWeeks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (subjectId) {
-      fetchWeeks();
+  const fetcher = async (url) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    
+    // Automatically log out on token expiration
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.reload();
+      return;
     }
-  }, [subjectId]);
 
-  const fetchWeeks = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}/weeks`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Failed to fetch weeks");
-
-      setWeeks(data.weeks);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+    if (!res.ok) throw new Error(data.message || "Failed to fetch weeks");
+    return data;
   };
+
+  const { data, error: rawError, mutate } = useSWR(
+    subjectId ? `${API_BASE_URL}/api/subjects/${subjectId}/weeks` : null,
+    fetcher
+  );
+
+  const weeks = data?.weeks || [];
+  const loading = !data && !rawError;
+  const error = rawError ? rawError.message : null;
 
   const handleAddWeek = async () => {
     try {
       const token = localStorage.getItem("token");
       const weekNumber = `Week ${weeks.length + 1}`;
+
+      // Optimistic update
+      const newTempWeek = { _id: "temp-" + Date.now(), weekNumber, topicName: "New Topic...", files: [] };
+      mutate({ weeks: [...weeks, newTempWeek] }, false);
+
       const res = await fetch(`${API_BASE_URL}/api/subjects/${subjectId}/weeks`, {
         method: "POST",
         headers: {
@@ -51,9 +57,10 @@ export default function SubjectDetail({ subjectId, subject, onBack }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      setWeeks([...weeks, data.week]);
+      mutate(); // Revalidate
     } catch (err) {
       console.error(err.message);
+      mutate(); // Revert
     }
   };
 
@@ -152,7 +159,7 @@ export default function SubjectDetail({ subjectId, subject, onBack }) {
                    onWeekUpdate={(updatedWeek) => {
                      const updatedWeeks = [...weeks];
                      updatedWeeks[index] = updatedWeek;
-                     setWeeks(updatedWeeks);
+                     mutate({ weeks: updatedWeeks }, false);
                    }}
                  />
                ))}
